@@ -10,6 +10,7 @@ include(ALExampleUtilities)
 set( TEST_ENVIRONMENT
     "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:al-java-binding>:$ENV{LD_LIBRARY_PATH}"
 )
+list( APPEND TEST_ENVIRONMENT ${AL_JAVA_SHIM_TEST_ENVIRONMENT} )
 
 if( AL_BACKEND_MDSPLUS )
   # Use MDSPLUS backend for testing
@@ -78,7 +79,10 @@ foreach( TEST IN LISTS TESTS )
   endif()
 
   # Java command to run the test
-  set( TEST_COMMAND ${Java_JAVA_EXECUTABLE} --class-path ${TEST_CLASSPATH} ${TEST} )
+  set( TEST_COMMAND ${Java_JAVA_EXECUTABLE}
+    "-Djava.library.path=$<TARGET_FILE_DIR:al-java-binding>"
+    --class-path ${TEST_CLASSPATH} ${TEST}
+  )
 
   # Execute the test without plugins
   add_test( NAME ${TEST_NAME} COMMAND ${TEST_COMMAND} )

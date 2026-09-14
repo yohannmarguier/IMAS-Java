@@ -12,6 +12,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/common/cmake/ALLocalPaths.cmake)
 # Configuration options for common assets
 ################################################################################
 option( AL_DOWNLOAD_DEPENDENCIES "Automatically download assets from the AL git repository" ON )
+option( AL_USE_MULTIVERSION_SHIM "Route Java Access Layer calls through IMAS-Multiversion-DD-Loader" OFF )
 set( AL_CORE_GIT_REPOSITORY "https://github.com/iterorganization/IMAS-Core.git" CACHE STRING "Git repository of IMAS-core" )
 set( AL_CORE_VERSION "main" CACHE STRING "Git commit/tag/branch of IMAS-core" )
 
@@ -196,7 +197,8 @@ endforeach()
 
 add_library( al-java-binding SHARED wrapper/imasjava_wrapper_LowLevel.cpp )
 target_include_directories( al-java-binding PRIVATE ${JNI_INCLUDE_DIRS} "wrapper" )
-target_link_libraries( al-java-binding al )
+include( ALJavaCoreLinkage )
+target_link_libraries( al-java-binding ${AL_JAVA_CORE_TARGET} )
 # Store lib-al-java-binding.so in the lib/ folder (required to run examples)
 set_target_properties( al-java-binding PROPERTIES LIBRARY_OUTPUT_DIRECTORY lib )
 

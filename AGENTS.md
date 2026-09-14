@@ -20,6 +20,17 @@ cmake --build build-docs --target al-java-docs
 
 The first command configures Java, JNI, generated sources, and enabled backends. The CTest suite executes the Java examples; backend-dependent tests may be skipped when neither MDSplus nor HDF5 is enabled. `ci/build_and_test.sh` documents the full CI configuration and its required module environment.
 
+With `-D AL_USE_MULTIVERSION_SHIM=ON`, the JNI binding links to the installed
+IMAS-Multiversion-DD-Loader CMake target instead of IMAS-Core. Set
+`CMAKE_PREFIX_PATH` to the shim's install prefix. IMAS-Core is still built or
+located for its headers and for the shim to open at runtime. CTest sets
+`IMAS_CORE_LIBRARY` for an in-tree Core build and
+`IMAS_MVDD_HLI_DD_VERSION` to the DD version used for generated Java sources.
+For manual runs, set those variables yourself; in installed-Core mode, ensure
+the Core library is discoverable by the dynamic loader or set
+`IMAS_CORE_LIBRARY` to its absolute library path. The shim contract is in
+`docs/SHIM_INTEGRATION_CONTRACT.md`.
+
 ## Coding Style & Naming Conventions
 
 Follow the surrounding Java style: two-space indentation, braces on the declaration line, and Javadoc for public APIs. Use PascalCase for classes (`LimitedSizeStringBuilder`), camelCase for methods and fields, and `Test<ClassOrFeature>` for integration-test classes. Keep JNI changes paired between `wrapper/imasjava_wrapper_LowLevel.h` and `.cpp`. There is no repository formatter or linter configured; avoid unrelated reformatting.
