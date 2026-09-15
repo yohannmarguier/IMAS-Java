@@ -739,7 +739,7 @@ public class imas {
         import imasjava.wrapper.*;
         import imasjava.*;
         
-        public class <xsl:value-of select="@name"/>_IDSBase
+        public class <xsl:value-of select="@name"/>_IDSBase extends Ids
         {
         
         private static final int maxOccurences = <xsl:value-of select="@maxoccur"/>;
@@ -934,7 +934,10 @@ public class imas {
                 // store state and overwrite so we use the ASCII backend in this->put
                 int _pulseCtx_stored = this.pulseCtx;
                 this.pulseCtx = _pulseCtx;
+                List&lt;SkippedPath&gt; _savedSkippedPaths = this.getSkippedPaths();
+                int _savedOutcome = this.getOutcome();
                 this.put();
+                this.restoreOperationRecord(_savedSkippedPaths, _savedOutcome);
                 // restore state
                 this.pulseCtx = _pulseCtx_stored;
 
@@ -984,7 +987,10 @@ public class imas {
                 // store state and overwrite so we use the Serialize backend in this->put
                 int _pulseCtx_stored = this.pulseCtx;
                 this.pulseCtx = _pulseCtx;
+                List&lt;SkippedPath&gt; _savedSkippedPaths = this.getSkippedPaths();
+                int _savedOutcome = this.getOutcome();
                 this.put();
+                this.restoreOperationRecord(_savedSkippedPaths, _savedOutcome);
                 // restore state
                 this.pulseCtx = _pulseCtx_stored;
 
@@ -1066,7 +1072,10 @@ public class imas {
                 // store state and overwrite so we use the ASCII backend in this->put
                 int _pulseCtx_stored = this.pulseCtx;
                 this.pulseCtx = _pulseCtx;
+                List&lt;SkippedPath&gt; _savedSkippedPaths = this.getSkippedPaths();
+                int _savedOutcome = this.getOutcome();
                 this.get(0);
+                this.restoreOperationRecord(_savedSkippedPaths, _savedOutcome);
                 // restore state
                 this.pulseCtx = _pulseCtx_stored;
 
@@ -1097,7 +1106,10 @@ public class imas {
                 // store state and overwrite so we use the Serialize backend in this->get
                 int _pulseCtx_stored = this.pulseCtx;
                 this.pulseCtx = _pulseCtx;
+                List&lt;SkippedPath&gt; _savedSkippedPaths = this.getSkippedPaths();
+                int _savedOutcome = this.getOutcome();
                 this.get(0);
+                this.restoreOperationRecord(_savedSkippedPaths, _savedOutcome);
                 // restore state
                 this.pulseCtx = _pulseCtx_stored;
 
@@ -1119,21 +1131,23 @@ public class imas {
 
     public void put(int iOccurrence)  throws ALException
     {
+        beginRootOperation();
+        try{
         int pulseCtx = this.pulseCtx;
         int ctx = -1;
         String idsFullName = <xsl:value-of select="@name"/>_IDSBase.IDS_NAME;
 
         String disableValidation;
-            
+
         disableValidation = System.getenv("IMAS_AL_DISABLE_VALIDATE");
 
         if (disableValidation == null || !disableValidation.equals("1")) validate();
- 
+
         int idsTimeMode = this.ids_properties.homogeneous_time;
 
         if(iOccurrence > 0)
             idsFullName = idsFullName + "/" + iOccurrence;
-            
+
             if(idsTimeMode == LowLevel.IDS_TIME_MODE_UNKNOWN)
             {
             System.err.println("Warning: IDS <xsl:value-of select="@name"/> is found to be EMPTY (homogeneous_time undefined). PUT quits with no action.");
@@ -1145,21 +1159,25 @@ public class imas {
               System.out.println("AL warning: ids_properties/homogeneous_time has been set to 2 for the constant IDS <xsl:value-of select="@name"/>, please check the program which has filled this IDS since this is the mandatory value for a constant IDS");
               this.ids_properties.homogeneous_time = 2;
             }
-            </xsl:if>       
-            
+            </xsl:if>
+
 
             delete(iOccurrence);
-            
+
             try{
             // Open put context
             ctx = LowLevel.al_begin_global_action(pulseCtx, idsFullName, LowLevel.WRITE_OP);
-            
+
             this.putRootFields(ctx, idsTimeMode, idsFullName);
             LowLevel.al_write_plugins_metadata(ctx);
             }
             finally {
             if(ctx >= 0)
             LowLevel.al_end_action(ctx);
+            }
+            }
+            finally {
+            endRootOperation(Ids.PARTIAL_PUT);
             }
             }
             
@@ -1216,6 +1234,8 @@ public class imas {
             }
             public void putSlice(int iOccurrence) throws ALException
             {
+            beginRootOperation();
+            try{
             <xsl:if test="@type='constant'">
             if(this.ids_properties.homogeneous_time != 2)
             {
@@ -1287,7 +1307,11 @@ public class imas {
               </xsl:otherwise>
             </xsl:choose>
             }
-            
+            finally {
+            endRootOperation(Ids.PARTIAL_PUT);
+            }
+            }
+
 
             public void putSliceRootFields(int ctx, int idsTimeMode, String idsFullName) throws ALException
             {
@@ -1400,19 +1424,21 @@ public class imas {
             
             public void get(int iOccurrence)  throws ALException
             {
+            beginRootOperation();
+            try{
             String strNodePath = "";
             int pulseCtx = this.pulseCtx;
             int ctx = -1;
             String idsFullName = <xsl:value-of select="@name"/>_IDSBase.IDS_NAME;
-            
-            
+
+
             int idsTimeMode = LowLevel.IDS_TIME_MODE_UNKNOWN;
-            
+
             if(iOccurrence > 0)
             idsFullName = idsFullName + "/" + iOccurrence;
-            
+
             idsTimeMode = imas.readIdsTimeMode(pulseCtx, idsFullName);
-            
+
             this.reset();
             try{
             // Open get context
@@ -1424,6 +1450,10 @@ public class imas {
             finally {
             if(ctx >= 0)
             LowLevel.al_end_action(ctx);
+            }
+            }
+            finally {
+            endRootOperation(Ids.PARTIAL_READ);
             }
             }
             public void getRootFields(int ctx, int idsTimeMode)  throws ALException
@@ -1485,6 +1515,8 @@ public class imas {
             }
             public void getSlice(int iOccurrence, double time, int interpolMode) throws ALException
             {
+            beginRootOperation();
+            try{
             <xsl:choose>
                 <xsl:when test="@type='constant'">
                 // for static IDSes only GET method is called
@@ -1494,14 +1526,14 @@ public class imas {
             int pulseCtx = this.pulseCtx;
             int ctx = -1;
             String idsFullName = <xsl:value-of select="@name"/>_IDSBase.IDS_NAME;
-            
+
             int idsTimeMode = LowLevel.IDS_TIME_MODE_UNKNOWN;
-            
+
             if(iOccurrence > 0)
             idsFullName = idsFullName + "/" + iOccurrence;
-            
+
             idsTimeMode = imas.readIdsTimeMode(pulseCtx, idsFullName);
-            
+
             this.reset();
             try{
             // Open putSlice context
@@ -1516,6 +1548,10 @@ public class imas {
             }
               </xsl:otherwise>
             </xsl:choose>
+            }
+            finally {
+            endRootOperation(Ids.PARTIAL_READ);
+            }
             }
             
             
@@ -1558,22 +1594,28 @@ public class imas {
             }
             
             public void delete(int iOccurrence) throws ALException
-            {  
+            {
+            beginRootOperation();
+            try{
             String idsFullName = <xsl:value-of select="@name"/>_IDSBase.IDS_NAME;
             int ctx = -1;
-            
+
             if(iOccurrence > 0)
             idsFullName = idsFullName + "/" + iOccurrence;
-            
+
             try{
             // Open put context
             ctx = LowLevel.al_begin_global_action(pulseCtx, idsFullName, LowLevel.WRITE_OP);
-            
+
             this.deleteRootFields(ctx);
             }
             finally {
             if(ctx >= 0)
             LowLevel.al_end_action(ctx);
+            }
+            }
+            finally {
+            endRootOperation(Ids.PARTIAL_PUT);
             }
             }
             

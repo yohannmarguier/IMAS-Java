@@ -119,6 +119,7 @@ list( APPEND SOURCES
     src/imasjava/ALLowLevel.java
     src/imasjava/Complex.java
     src/imasjava/CoordinateValidation.java
+    src/imasjava/Ids.java
     src/imasjava/LimitedSizeStringBuilder.java
     src/imasjava/RefusalCollector.java
     src/imasjava/SkippedPath.java
