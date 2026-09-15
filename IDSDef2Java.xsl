@@ -2425,6 +2425,7 @@ public class imas {
             try{
             arraySize = this.<xsl:value-of select = "@name"/>.length;
             int tmpArray[] = { arraySize };
+            aosCtx = -1;
             aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
 
             if (this.<xsl:value-of select = "@name"/>.length == 0 &amp;&amp; tmpArray[0]&gt;0) {
@@ -2462,6 +2463,7 @@ public class imas {
             try{
             arraySize = this.<xsl:value-of select = "@name"/>.length;
             int tmpArray[] = { arraySize };
+            aosCtx = -1;
             aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
 
             if (this.<xsl:value-of select = "@name"/>.length == 0 &amp;&amp; tmpArray[0]&gt;0) {
@@ -2507,6 +2509,7 @@ public class imas {
             try{
             arraySize = this.<xsl:value-of select = "@name"/>.length;
             int tmpArray[] = { arraySize };
+            aosCtx = -1;
             aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
 
             if (this.<xsl:value-of select = "@name"/>.length == 0 &amp;&amp; tmpArray[0]&gt;0) {
@@ -2621,6 +2624,7 @@ public class imas {
           strTimeBasePath = "";
           try{       
           int tmpArray[] = new int[1];
+          aosCtx = -1;
           aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
           arraySize = tmpArray[0];
           if(arraySize &lt;= 0)
@@ -2660,6 +2664,7 @@ public class imas {
           strTimeBasePath = "";
           try{       
           int tmpArray[] = new int[1];
+          aosCtx = -1;
           aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
           arraySize = tmpArray[0];
           if(arraySize &lt;= 0)
@@ -2706,6 +2711,7 @@ public class imas {
           </xsl:choose>
           try{       
           int tmpArray[] = new int[1];
+          aosCtx = -1;
           aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
           arraySize = tmpArray[0];
           if(arraySize &lt;= 0)
