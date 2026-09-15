@@ -28,7 +28,11 @@ static void raiseLowLevelException(JNIEnv *env, al_status_t alStatus)
     sprintf(msgBuffer, "ERROR[%d]\n%s\n", alStatus.code, alStatus.message);
 
     jclass exc = env->FindClass("imasjava/ALException");
-    env->ThrowNew(exc, msgBuffer);
+    jmethodID ctor = env->GetMethodID(exc, "<init>", "(Ljava/lang/String;ILjava/lang/String;)V");
+    jstring jMessage = env->NewStringUTF(msgBuffer);
+    jstring jRawMessage = env->NewStringUTF(alStatus.message);
+    jobject excObject = env->NewObject(exc, ctor, jMessage, (jint)alStatus.code, jRawMessage);
+    env->Throw((jthrowable)excObject);
  }
 
 
