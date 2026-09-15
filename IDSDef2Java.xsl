@@ -2815,15 +2815,12 @@ public class imas {
               strTimeBasePath = "";
             </xsl:otherwise>
           </xsl:choose>
-          try
-          {
+          try{
           this.<xsl:value-of select="@name"/> = Wrapper.readData(ctx, strNodePath, strTimeBasePath, this.<xsl:value-of select="@name"/>);
           }
-          catch (ALException alException)
-          {
-          if (!ToleranceChokepoint.tolerate(alException, SkippedPath.Operation.READ, strNodePath))
-          {
-          throw alException;
+          catch (ALException exc) {
+          if (!ToleranceChokepoint.tolerate(exc, SkippedPath.Operation.READ, strNodePath)) {
+          throw exc;
           }
           }
           <xsl:if test="@type='dynamic' and not(ancestor::field[@type='dynamic' and @data_type='struct_array'])">
