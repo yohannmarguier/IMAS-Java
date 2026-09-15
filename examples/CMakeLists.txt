@@ -41,6 +41,7 @@ set( TESTS
     TestGyrokineticsValidate
     TestIdentifiers
     TestMagneticsValidate
+    TestOperationRecordLifecycle
     TestPfActiveGet
     TestPfActiveGetSlice
     TestPfActivePut
@@ -76,7 +77,7 @@ foreach( TEST IN LISTS TESTS )
 
   # Disable some tests if no persistent backends available
   set( DISABLED OFF )
-  if( NOT AL_BACKEND_MDSPLUS AND NOT AL_BACKEND_HDF5 AND TEST_NAME MATCHES "Get|Put|Empty|Serialize" )
+  if( NOT AL_BACKEND_MDSPLUS AND NOT AL_BACKEND_HDF5 AND TEST_NAME MATCHES "Get|Put|Empty|Serialize|OperationRecordLifecycle" )
     set( DISABLED ON )
   endif()
 
