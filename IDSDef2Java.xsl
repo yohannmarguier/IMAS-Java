@@ -2077,7 +2077,13 @@ public class imas {
         </xsl:when>
         <xsl:otherwise>
           strNodePath = "<xsl:value-of select="@path"/>";
+          try{
           LowLevel.al_delete_data(ctx, strNodePath);
+          } catch (ALException exc) {
+          if (!ToleranceChokepoint.tolerate(exc, SkippedPath.Operation.DELETE, strNodePath)) {
+          throw exc;
+          }
+          }
         </xsl:otherwise>
       </xsl:choose>
     </xsl:template>
