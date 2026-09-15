@@ -26,6 +26,7 @@ else()
 endif()
 
 set( TESTS
+    TestALExceptionCarriedStatus
     TestCoreProfilesEmpty
     TestCoreProfilesGet
     TestCoreProfilesGetSlice
