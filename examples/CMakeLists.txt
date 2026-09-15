@@ -46,6 +46,7 @@ set( TESTS
     TestPfActivePut
     TestPfActivePutSlice
     TestResizeArray
+    TestToleranceChokepoint
     TestVersion
     TestWavesValidate
 )
