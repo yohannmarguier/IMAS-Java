@@ -1,5 +1,7 @@
 package imasjava;
 
+import java.util.Objects;
+
 /**
  * One field a tolerant site left unset because of a tolerated refusal.
  *
@@ -58,5 +60,29 @@ public final class SkippedPath
    public int getCode()
    {
       return code;
+   }
+
+   @Override
+   public boolean equals(Object other)
+   {
+      if (this == other)
+      {
+         return true;
+      }
+      if (!(other instanceof SkippedPath))
+      {
+         return false;
+      }
+      SkippedPath that = (SkippedPath) other;
+      return code == that.code
+            && operation == that.operation
+            && Objects.equals(path, that.path)
+            && Objects.equals(message, that.message);
+   }
+
+   @Override
+   public int hashCode()
+   {
+      return Objects.hash(operation, path, message, code);
    }
 }
