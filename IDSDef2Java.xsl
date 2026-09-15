@@ -1129,6 +1129,14 @@ public class imas {
         this.put(0);
     }
 
+    /**
+    * A refused leaf write is tolerated: the field is left unwritten and the
+    * traversal carries on, reporting a partial put on {@link #getOutcome()}
+    * instead of throwing. There is no rollback of fields already written
+    * before the refusal — an accepted limitation, not a defect.
+    * @param iOccurrence the occurrence to write
+    * @exception ALException Issued when a non-tolerated failure aborts the operation.
+    */
     public void put(int iOccurrence)  throws ALException
     {
         beginRootOperation();
@@ -1232,6 +1240,16 @@ public class imas {
               </xsl:otherwise>
             </xsl:choose>
             }
+            /**
+            * A refused leaf write is tolerated the same way as in {@link #put(int)}:
+            * the field is left unwritten, the traversal carries on, and a partial
+            * put is reported instead of an exception. There is no rollback — a
+            * refusal partway through a slice leaves what was already written on
+            * disk, and the container one element longer. An accepted limitation,
+            * not a defect.
+            * @param iOccurrence the occurrence to write
+            * @exception ALException Issued when a non-tolerated failure aborts the operation.
+            */
             public void putSlice(int iOccurrence) throws ALException
             {
             beginRootOperation();
@@ -2608,6 +2626,7 @@ public class imas {
                 strTimeBasePath = "";
               </xsl:otherwise>
             </xsl:choose>
+            try{
             <xsl:choose>
               <xsl:when test="@path='ids_properties/version_put/data_dictionary'">
                 Wrapper.writeData(ctx, idsFullName, strNodePath, strTimeBasePath, "<xsl:value-of select="$DD_VERSION"/>", "<xsl:value-of select="@lifecycle_status"/>");
@@ -2622,7 +2641,12 @@ public class imas {
                 Wrapper.writeData(ctx, idsFullName, strNodePath, strTimeBasePath, this.<xsl:value-of select="@name"/>, "<xsl:value-of select="@lifecycle_status"/>");
               </xsl:otherwise>
             </xsl:choose>
-            
+            } catch (ALException failure) {
+            if (!ToleranceChokepoint.tolerate(failure, SkippedPath.Operation.WRITE, strNodePath)) {
+            throw failure;
+            }
+            }
+
             <xsl:if test="@type='dynamic' and not(ancestor::field[@type='dynamic' and @data_type='struct_array'])">
               }
             </xsl:if>
