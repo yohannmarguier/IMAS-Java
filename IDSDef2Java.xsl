@@ -2492,8 +2492,15 @@ public class imas {
             arraySize = this.<xsl:value-of select = "@name"/>.length;
             int tmpArray[] = { arraySize };
             aosCtx = -1;
+            try {
             aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
+            } catch (ALException _aosOpenRefusal) {
+            if (!ToleranceChokepoint.tolerate(_aosOpenRefusal, SkippedPath.Operation.WRITE, strNodePath)) {
+            throw _aosOpenRefusal;
+            }
+            }
 
+            if (aosCtx >= 0) {
             if (this.<xsl:value-of select = "@name"/>.length == 0 &amp;&amp; tmpArray[0]&gt;0) {
               arraySize = tmpArray[0];
               this.<xsl:value-of select="@name"/> = new <xsl:value-of select = "@name"/>Class[arraySize];
@@ -2503,6 +2510,7 @@ public class imas {
             {
             this.<xsl:value-of select="@name"/>[i].<xsl:value-of select="$methodName"/>(aosCtx, idsTimeMode, idsFullName);
             LowLevel.al_iterate_over_arraystruct(aosCtx, 1); 
+            }
             }
             }
             
@@ -2530,8 +2538,15 @@ public class imas {
             arraySize = this.<xsl:value-of select = "@name"/>.length;
             int tmpArray[] = { arraySize };
             aosCtx = -1;
+            try {
             aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
+            } catch (ALException _aosOpenRefusal) {
+            if (!ToleranceChokepoint.tolerate(_aosOpenRefusal, SkippedPath.Operation.WRITE, strNodePath)) {
+            throw _aosOpenRefusal;
+            }
+            }
 
+            if (aosCtx >= 0) {
             if (this.<xsl:value-of select = "@name"/>.length == 0 &amp;&amp; tmpArray[0]&gt;0) {
               arraySize = tmpArray[0];
               this.<xsl:value-of select="@name"/> = new <xsl:value-of select = "@name"/>Class[arraySize];
@@ -2541,6 +2556,7 @@ public class imas {
             {
             this.<xsl:value-of select="@name"/>[i].<xsl:value-of select="$methodName"/>(aosCtx, idsTimeMode, idsFullName);
             LowLevel.al_iterate_over_arraystruct(aosCtx, 1); 
+            }
             }
             }
             
@@ -2576,8 +2592,15 @@ public class imas {
             arraySize = this.<xsl:value-of select = "@name"/>.length;
             int tmpArray[] = { arraySize };
             aosCtx = -1;
+            try {
             aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
+            } catch (ALException _aosOpenRefusal) {
+            if (!ToleranceChokepoint.tolerate(_aosOpenRefusal, SkippedPath.Operation.WRITE, strNodePath)) {
+            throw _aosOpenRefusal;
+            }
+            }
 
+            if (aosCtx >= 0) {
             if (this.<xsl:value-of select = "@name"/>.length == 0 &amp;&amp; tmpArray[0]&gt;0) {
               arraySize = tmpArray[0];
               this.<xsl:value-of select="@name"/> = new <xsl:value-of select = "@name"/>Class[arraySize];
@@ -2587,6 +2610,7 @@ public class imas {
             {
             this.<xsl:value-of select="@name"/>[i].<xsl:value-of select="$methodName"/>(aosCtx, idsTimeMode, idsFullName);
             LowLevel.al_iterate_over_arraystruct(aosCtx, 1); 
+            }
             }
             }
             
@@ -2697,7 +2721,14 @@ public class imas {
           try{       
           int tmpArray[] = new int[1];
           aosCtx = -1;
+          try {
           aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
+          } catch (ALException _aosOpenRefusal) {
+          if (!ToleranceChokepoint.tolerate(_aosOpenRefusal, SkippedPath.Operation.READ, strNodePath)) {
+          throw _aosOpenRefusal;
+          }
+          }
+          if (aosCtx >= 0) {
           arraySize = tmpArray[0];
           if(arraySize &lt;= 0)
           {
@@ -2714,6 +2745,11 @@ public class imas {
           this.<xsl:value-of select="@name"/>[i].get(aosCtx, idsTimeMode);
           LowLevel.al_iterate_over_arraystruct(aosCtx, 1); 
           }
+          }
+          }
+          else
+          {
+          this.<xsl:value-of select="@name"/> = null;
           }
           }     
           finally { 
@@ -2737,7 +2773,14 @@ public class imas {
           try{       
           int tmpArray[] = new int[1];
           aosCtx = -1;
+          try {
           aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
+          } catch (ALException _aosOpenRefusal) {
+          if (!ToleranceChokepoint.tolerate(_aosOpenRefusal, SkippedPath.Operation.READ, strNodePath)) {
+          throw _aosOpenRefusal;
+          }
+          }
+          if (aosCtx >= 0) {
           arraySize = tmpArray[0];
           if(arraySize &lt;= 0)
           {
@@ -2754,6 +2797,11 @@ public class imas {
           this.<xsl:value-of select="@name"/>[i].get(aosCtx, idsTimeMode);
           LowLevel.al_iterate_over_arraystruct(aosCtx, 1); 
           }
+          }
+          }
+          else
+          {
+          this.<xsl:value-of select="@name"/> = null;
           }
           }     
           finally { 
@@ -2784,7 +2832,14 @@ public class imas {
           try{       
           int tmpArray[] = new int[1];
           aosCtx = -1;
+          try {
           aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
+          } catch (ALException _aosOpenRefusal) {
+          if (!ToleranceChokepoint.tolerate(_aosOpenRefusal, SkippedPath.Operation.READ, strNodePath)) {
+          throw _aosOpenRefusal;
+          }
+          }
+          if (aosCtx >= 0) {
           arraySize = tmpArray[0];
           if(arraySize &lt;= 0)
           {
@@ -2801,6 +2856,11 @@ public class imas {
           this.<xsl:value-of select="@name"/>[i].get(aosCtx, idsTimeMode);
           LowLevel.al_iterate_over_arraystruct(aosCtx, 1); 
           }
+          }
+          }
+          else
+          {
+          this.<xsl:value-of select="@name"/> = null;
           }
           }     
           finally { 
