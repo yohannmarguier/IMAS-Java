@@ -50,16 +50,26 @@ public class Ids
     * this IDS's own copy of what it recorded, replacing whatever this IDS
     * held from an earlier root operation.
     *
-    * @param partialOutcome the outcome to report when at least one path was
-    *                       skipped: {@link #PARTIAL_READ} for a read,
+    * <p>A root operation that did not complete reports failure by throwing,
+    * so it leaves no partial outcome behind: its record is replaced with an
+    * empty one and its outcome with {@link #CLEAN}. Anything a tolerant
+    * site absorbed before the operation failed is discarded with it,
+    * keeping "an {@link ALException} is failure, a non-empty record is
+    * partial" true of every operation.
+    *
+    * @param partialOutcome the outcome to report when the operation
+    *                       completed and skipped at least one path:
+    *                       {@link #PARTIAL_READ} for a read,
     *                       {@link #PARTIAL_PUT} for a write or delete
+    * @param completed      {@code true} when the root operation ran to the
+    *                       end, {@code false} when it is unwinding
     */
-   protected final void endRootOperation(int partialOutcome)
+   protected final void endRootOperation(int partialOutcome, boolean completed)
    {
       List<SkippedPath> recorded = RefusalCollector.current().getSkippedPaths();
       RefusalCollector.close();
-      this.skippedPaths = recorded;
-      this.outcome = recorded.isEmpty() ? CLEAN : partialOutcome;
+      this.skippedPaths = completed ? recorded : Collections.<SkippedPath>emptyList();
+      this.outcome = (completed && !recorded.isEmpty()) ? partialOutcome : CLEAN;
    }
 
    /**

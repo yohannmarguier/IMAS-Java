@@ -1136,6 +1136,7 @@ public class imas {
     public void put(int iOccurrence)  throws ALException
     {
         beginRootOperation();
+        boolean _rootOperationCompleted = false;
         try{
         int pulseCtx = this.pulseCtx;
         int ctx = -1;
@@ -1179,9 +1180,10 @@ public class imas {
             if(ctx >= 0)
             LowLevel.al_end_action(ctx);
             }
+            _rootOperationCompleted = true;
             }
             finally {
-            endRootOperation(Ids.PARTIAL_PUT);
+            endRootOperation(Ids.PARTIAL_PUT, _rootOperationCompleted);
             }
             }
             
@@ -1249,6 +1251,7 @@ public class imas {
             public void putSlice(int iOccurrence) throws ALException
             {
             beginRootOperation();
+            boolean _rootOperationCompleted = false;
             try{
             <xsl:if test="@type='constant'">
             if(this.ids_properties.homogeneous_time != 2)
@@ -1320,9 +1323,10 @@ public class imas {
             }
               </xsl:otherwise>
             </xsl:choose>
+            _rootOperationCompleted = true;
             }
             finally {
-            endRootOperation(Ids.PARTIAL_PUT);
+            endRootOperation(Ids.PARTIAL_PUT, _rootOperationCompleted);
             }
             }
 
@@ -1439,6 +1443,7 @@ public class imas {
             public void get(int iOccurrence)  throws ALException
             {
             beginRootOperation();
+            boolean _rootOperationCompleted = false;
             try{
             String strNodePath = "";
             int pulseCtx = this.pulseCtx;
@@ -1465,9 +1470,10 @@ public class imas {
             if(ctx >= 0)
             LowLevel.al_end_action(ctx);
             }
+            _rootOperationCompleted = true;
             }
             finally {
-            endRootOperation(Ids.PARTIAL_READ);
+            endRootOperation(Ids.PARTIAL_READ, _rootOperationCompleted);
             }
             }
             public void getRootFields(int ctx, int idsTimeMode)  throws ALException
@@ -1530,6 +1536,7 @@ public class imas {
             public void getSlice(int iOccurrence, double time, int interpolMode) throws ALException
             {
             beginRootOperation();
+            boolean _rootOperationCompleted = false;
             try{
             <xsl:choose>
                 <xsl:when test="@type='constant'">
@@ -1562,9 +1569,10 @@ public class imas {
             }
               </xsl:otherwise>
             </xsl:choose>
+            _rootOperationCompleted = true;
             }
             finally {
-            endRootOperation(Ids.PARTIAL_READ);
+            endRootOperation(Ids.PARTIAL_READ, _rootOperationCompleted);
             }
             }
             
@@ -1610,6 +1618,7 @@ public class imas {
             public void delete(int iOccurrence) throws ALException
             {
             beginRootOperation();
+            boolean _rootOperationCompleted = false;
             try{
             String idsFullName = <xsl:value-of select="@name"/>_IDSBase.IDS_NAME;
             int ctx = -1;
@@ -1627,9 +1636,10 @@ public class imas {
             if(ctx >= 0)
             LowLevel.al_end_action(ctx);
             }
+            _rootOperationCompleted = true;
             }
             finally {
-            endRootOperation(Ids.PARTIAL_PUT);
+            endRootOperation(Ids.PARTIAL_PUT, _rootOperationCompleted);
             }
             }
             

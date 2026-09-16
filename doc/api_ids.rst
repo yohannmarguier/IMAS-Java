@@ -219,7 +219,9 @@ IDS API
     failure nor a fully clean result, and the three outcomes are told apart
     as follows:
 
-    - An :java:ref:`ALException` is thrown: the operation failed.
+    - An :java:ref:`ALException` is thrown: the operation failed. It leaves
+      an empty record and a :java:ref:`CLEAN` outcome behind, so a failure is
+      never also reported as a partial result.
     - The operation returns and :java:ref:`getSkippedPathCount` is ``0``: the
       operation completed cleanly.
     - The operation returns and :java:ref:`getSkippedPathCount` is greater
@@ -229,7 +231,7 @@ IDS API
 
     The record describes only the IDS's last root operation: it starts empty,
     does not accumulate across calls, and is replaced in full by the next root
-    operation. A :java:ref:`serialize`/:java:ref:`deserialize` pair runs a
+    operation, whether that one completes or fails. A :java:ref:`serialize`/:java:ref:`deserialize` pair runs a
     root operation internally against an in-memory pulse, and preserves the
     record of the root operation the caller actually asked for rather than
     that internal one.
