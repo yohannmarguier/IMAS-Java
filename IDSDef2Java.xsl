@@ -2436,6 +2436,36 @@ public class imas {
     <!--  that throws must not erase it either.                           -->
     <!--=================================================================-->
 
+    <!--=================================================================-->
+    <!--  Opens an array-of-structures context at a tolerant site.         -->
+    <!--                                                                   -->
+    <!--  A refused open means the shim will not serve this container at   -->
+    <!--  all, so the whole container is skipped and the traversal carries -->
+    <!--  on past it. aosCtx is reset first so a refusal cannot leave the  -->
+    <!--  previous container's id in scope, and the caller guards the body -->
+    <!--  with "if (aosCtx >= 0)".                                         -->
+    <!--                                                                   -->
+    <!--  The two operations part company in what the caller does next,    -->
+    <!--  not here. A refused read leaves the field null, because nothing  -->
+    <!--  was fetched into it. A refused write deliberately leaves the     -->
+    <!--  caller's in-memory array untouched: the data is still theirs,    -->
+    <!--  only storing it was refused, so there is no else branch on the   -->
+    <!--  write side.                                                      -->
+    <!--=================================================================-->
+
+    <xsl:template name="TOLERANT_AOS_OPEN">
+      <!-- READ or WRITE, the root operation the traversal is performing -->
+      <xsl:param name="operation"/>
+      aosCtx = -1;
+      try {
+      aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
+      } catch (ALException _aosOpenRefusal) {
+      if (!ToleranceChokepoint.tolerate(_aosOpenRefusal, SkippedPath.Operation.<xsl:value-of select="$operation"/>, strNodePath)) {
+      throw _aosOpenRefusal;
+      }
+      }
+    </xsl:template>
+
     <xsl:template name="NESTED_ROOT_OPERATION">
       <!-- the inner root operation call, e.g. "this.put();" -->
       <xsl:param name="call"/>
@@ -2517,14 +2547,9 @@ public class imas {
             try{
             arraySize = this.<xsl:value-of select = "@name"/>.length;
             int tmpArray[] = { arraySize };
-            aosCtx = -1;
-            try {
-            aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
-            } catch (ALException _aosOpenRefusal) {
-            if (!ToleranceChokepoint.tolerate(_aosOpenRefusal, SkippedPath.Operation.WRITE, strNodePath)) {
-            throw _aosOpenRefusal;
-            }
-            }
+            <xsl:call-template name="TOLERANT_AOS_OPEN">
+              <xsl:with-param name="operation">WRITE</xsl:with-param>
+            </xsl:call-template>
 
             if (aosCtx >= 0) {
             if (this.<xsl:value-of select = "@name"/>.length == 0 &amp;&amp; tmpArray[0]&gt;0) {
@@ -2563,14 +2588,9 @@ public class imas {
             try{
             arraySize = this.<xsl:value-of select = "@name"/>.length;
             int tmpArray[] = { arraySize };
-            aosCtx = -1;
-            try {
-            aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
-            } catch (ALException _aosOpenRefusal) {
-            if (!ToleranceChokepoint.tolerate(_aosOpenRefusal, SkippedPath.Operation.WRITE, strNodePath)) {
-            throw _aosOpenRefusal;
-            }
-            }
+            <xsl:call-template name="TOLERANT_AOS_OPEN">
+              <xsl:with-param name="operation">WRITE</xsl:with-param>
+            </xsl:call-template>
 
             if (aosCtx >= 0) {
             if (this.<xsl:value-of select = "@name"/>.length == 0 &amp;&amp; tmpArray[0]&gt;0) {
@@ -2617,14 +2637,9 @@ public class imas {
             try{
             arraySize = this.<xsl:value-of select = "@name"/>.length;
             int tmpArray[] = { arraySize };
-            aosCtx = -1;
-            try {
-            aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
-            } catch (ALException _aosOpenRefusal) {
-            if (!ToleranceChokepoint.tolerate(_aosOpenRefusal, SkippedPath.Operation.WRITE, strNodePath)) {
-            throw _aosOpenRefusal;
-            }
-            }
+            <xsl:call-template name="TOLERANT_AOS_OPEN">
+              <xsl:with-param name="operation">WRITE</xsl:with-param>
+            </xsl:call-template>
 
             if (aosCtx >= 0) {
             if (this.<xsl:value-of select = "@name"/>.length == 0 &amp;&amp; tmpArray[0]&gt;0) {
@@ -2746,14 +2761,9 @@ public class imas {
           strTimeBasePath = "";
           try{       
           int tmpArray[] = new int[1];
-          aosCtx = -1;
-          try {
-          aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
-          } catch (ALException _aosOpenRefusal) {
-          if (!ToleranceChokepoint.tolerate(_aosOpenRefusal, SkippedPath.Operation.READ, strNodePath)) {
-          throw _aosOpenRefusal;
-          }
-          }
+          <xsl:call-template name="TOLERANT_AOS_OPEN">
+            <xsl:with-param name="operation">READ</xsl:with-param>
+          </xsl:call-template>
           if (aosCtx >= 0) {
           arraySize = tmpArray[0];
           if(arraySize &lt;= 0)
@@ -2798,14 +2808,9 @@ public class imas {
           strTimeBasePath = "";
           try{       
           int tmpArray[] = new int[1];
-          aosCtx = -1;
-          try {
-          aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
-          } catch (ALException _aosOpenRefusal) {
-          if (!ToleranceChokepoint.tolerate(_aosOpenRefusal, SkippedPath.Operation.READ, strNodePath)) {
-          throw _aosOpenRefusal;
-          }
-          }
+          <xsl:call-template name="TOLERANT_AOS_OPEN">
+            <xsl:with-param name="operation">READ</xsl:with-param>
+          </xsl:call-template>
           if (aosCtx >= 0) {
           arraySize = tmpArray[0];
           if(arraySize &lt;= 0)
@@ -2857,14 +2862,9 @@ public class imas {
           </xsl:choose>
           try{       
           int tmpArray[] = new int[1];
-          aosCtx = -1;
-          try {
-          aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
-          } catch (ALException _aosOpenRefusal) {
-          if (!ToleranceChokepoint.tolerate(_aosOpenRefusal, SkippedPath.Operation.READ, strNodePath)) {
-          throw _aosOpenRefusal;
-          }
-          }
+          <xsl:call-template name="TOLERANT_AOS_OPEN">
+            <xsl:with-param name="operation">READ</xsl:with-param>
+          </xsl:call-template>
           if (aosCtx >= 0) {
           arraySize = tmpArray[0];
           if(arraySize &lt;= 0)
