@@ -934,10 +934,9 @@ public class imas {
                 // store state and overwrite so we use the ASCII backend in this->put
                 int _pulseCtx_stored = this.pulseCtx;
                 this.pulseCtx = _pulseCtx;
-                List&lt;SkippedPath&gt; _savedSkippedPaths = this.getSkippedPaths();
-                int _savedOutcome = this.getOutcome();
-                this.put();
-                this.restoreOperationRecord(_savedSkippedPaths, _savedOutcome);
+                <xsl:call-template name="NESTED_ROOT_OPERATION">
+                  <xsl:with-param name="call">this.put();</xsl:with-param>
+                </xsl:call-template>
                 // restore state
                 this.pulseCtx = _pulseCtx_stored;
 
@@ -987,10 +986,9 @@ public class imas {
                 // store state and overwrite so we use the Serialize backend in this->put
                 int _pulseCtx_stored = this.pulseCtx;
                 this.pulseCtx = _pulseCtx;
-                List&lt;SkippedPath&gt; _savedSkippedPaths = this.getSkippedPaths();
-                int _savedOutcome = this.getOutcome();
-                this.put();
-                this.restoreOperationRecord(_savedSkippedPaths, _savedOutcome);
+                <xsl:call-template name="NESTED_ROOT_OPERATION">
+                  <xsl:with-param name="call">this.put();</xsl:with-param>
+                </xsl:call-template>
                 // restore state
                 this.pulseCtx = _pulseCtx_stored;
 
@@ -1072,10 +1070,9 @@ public class imas {
                 // store state and overwrite so we use the ASCII backend in this->put
                 int _pulseCtx_stored = this.pulseCtx;
                 this.pulseCtx = _pulseCtx;
-                List&lt;SkippedPath&gt; _savedSkippedPaths = this.getSkippedPaths();
-                int _savedOutcome = this.getOutcome();
-                this.get(0);
-                this.restoreOperationRecord(_savedSkippedPaths, _savedOutcome);
+                <xsl:call-template name="NESTED_ROOT_OPERATION">
+                  <xsl:with-param name="call">this.get(0);</xsl:with-param>
+                </xsl:call-template>
                 // restore state
                 this.pulseCtx = _pulseCtx_stored;
 
@@ -1106,10 +1103,9 @@ public class imas {
                 // store state and overwrite so we use the Serialize backend in this->get
                 int _pulseCtx_stored = this.pulseCtx;
                 this.pulseCtx = _pulseCtx;
-                List&lt;SkippedPath&gt; _savedSkippedPaths = this.getSkippedPaths();
-                int _savedOutcome = this.getOutcome();
-                this.get(0);
-                this.restoreOperationRecord(_savedSkippedPaths, _savedOutcome);
+                <xsl:call-template name="NESTED_ROOT_OPERATION">
+                  <xsl:with-param name="call">this.get(0);</xsl:with-param>
+                </xsl:call-template>
                 // restore state
                 this.pulseCtx = _pulseCtx_stored;
 
@@ -2422,6 +2418,26 @@ public class imas {
     
     
     <!--=================================================================-->
+    <!--=================================================================-->
+    <!--  Runs a root operation nested inside another one, preserving the  -->
+    <!--  IDS's operation record and partial outcome across it. The inner  -->
+    <!--  operation replaces the record the caller was told about, so it   -->
+    <!--  is saved before and restored in a finally: an inner operation    -->
+    <!--  that throws must not erase it either.                           -->
+    <!--=================================================================-->
+
+    <xsl:template name="NESTED_ROOT_OPERATION">
+      <!-- the inner root operation call, e.g. "this.put();" -->
+      <xsl:param name="call"/>
+      List&lt;SkippedPath&gt; _savedSkippedPaths = this.getSkippedPaths();
+      int _savedOutcome = this.getOutcome();
+      try {
+      <xsl:value-of select="$call"/>
+      } finally {
+      this.restoreOperationRecord(_savedSkippedPaths, _savedOutcome);
+      }
+    </xsl:template>
+
     <!-- function to generate the full subclass name from the field path -->
     <!--           (adds the "Class" keyword for each subclass)          -->
     <!--=================================================================-->
