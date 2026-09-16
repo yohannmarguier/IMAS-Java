@@ -28,10 +28,32 @@ static void raiseLowLevelException(JNIEnv *env, al_status_t alStatus)
     sprintf(msgBuffer, "ERROR[%d]\n%s\n", alStatus.code, alStatus.message);
 
     jclass exc = env->FindClass("imasjava/ALException");
+    if (exc == NULL)
+       return;
+
+    // An al-java.jar older than the carried-status change has no 3-argument
+    // constructor. Fall back to the message-only raise rather than calling
+    // NewObject with a NULL method id, which is undefined behaviour.
     jmethodID ctor = env->GetMethodID(exc, "<init>", "(Ljava/lang/String;ILjava/lang/String;)V");
+    if (ctor == NULL)
+    {
+       env->ExceptionClear();
+       env->ThrowNew(exc, msgBuffer);
+       return;
+    }
+
     jstring jMessage = env->NewStringUTF(msgBuffer);
     jstring jRawMessage = env->NewStringUTF(alStatus.message);
-    jobject excObject = env->NewObject(exc, ctor, jMessage, (jint)alStatus.code, jRawMessage);
+    jobject excObject = (jMessage == NULL || jRawMessage == NULL)
+       ? NULL
+       : env->NewObject(exc, ctor, jMessage, (jint)alStatus.code, jRawMessage);
+    if (excObject == NULL)
+    {
+       env->ExceptionClear();
+       env->ThrowNew(exc, msgBuffer);
+       return;
+    }
+
     env->Throw((jthrowable)excObject);
  }
 
