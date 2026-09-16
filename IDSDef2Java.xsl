@@ -2103,9 +2103,9 @@ public class imas {
           strNodePath = "<xsl:value-of select="@path"/>";
           try{
           LowLevel.al_delete_data(ctx, strNodePath);
-          } catch (ALException exc) {
-          if (!ToleranceChokepoint.tolerate(exc, SkippedPath.Operation.DELETE, strNodePath)) {
-          throw exc;
+          } catch (ALException _leafRefusal) {
+          if (!ToleranceChokepoint.tolerate(_leafRefusal, SkippedPath.Operation.DELETE, strNodePath)) {
+          throw _leafRefusal;
           }
           }
         </xsl:otherwise>
@@ -2712,9 +2712,9 @@ public class imas {
                 Wrapper.writeData(ctx, idsFullName, strNodePath, strTimeBasePath, this.<xsl:value-of select="@name"/>, "<xsl:value-of select="@lifecycle_status"/>");
               </xsl:otherwise>
             </xsl:choose>
-            } catch (ALException failure) {
-            if (!ToleranceChokepoint.tolerate(failure, SkippedPath.Operation.WRITE, strNodePath)) {
-            throw failure;
+            } catch (ALException _leafRefusal) {
+            if (!ToleranceChokepoint.tolerate(_leafRefusal, SkippedPath.Operation.WRITE, strNodePath)) {
+            throw _leafRefusal;
             }
             }
 
@@ -2934,9 +2934,9 @@ public class imas {
           try{
           this.<xsl:value-of select="@name"/> = Wrapper.readData(ctx, strNodePath, strTimeBasePath, this.<xsl:value-of select="@name"/>);
           }
-          catch (ALException exc) {
-          if (!ToleranceChokepoint.tolerate(exc, SkippedPath.Operation.READ, strNodePath)) {
-          throw exc;
+          catch (ALException _leafRefusal) {
+          if (!ToleranceChokepoint.tolerate(_leafRefusal, SkippedPath.Operation.READ, strNodePath)) {
+          throw _leafRefusal;
           }
           }
           <xsl:if test="@type='dynamic' and not(ancestor::field[@type='dynamic' and @data_type='struct_array'])">
