@@ -10,9 +10,11 @@ import java.util.List;
  * a user already has, against a real backend: the record is empty before
  * any root operation, empty and clean after an ordinary get and after an
  * ordinary put, it does not accumulate across calls, its reported count
- * agrees with its entries, and a record left by a partial read survives a
+ * agrees with its entries, a record left by a partial read survives a
  * subsequent serialize/deserialize round trip rather than being clobbered
- * by their internal put/get against an in-memory pulse.
+ * by their internal put/get against an in-memory pulse, and reading or
+ * writing a second IDS in sequence never confuses whose skipped paths are
+ * whose.
  */
 class TestOperationRecordLifecycle {
 
@@ -60,6 +62,25 @@ class TestOperationRecordLifecycle {
 
             ids.deserialize(data);
             checkRecord("after deserialize (a record from a partial read must survive)",
+                    ids, partialRead, Ids.PARTIAL_READ);
+
+            // Two IDSs used in sequence each carry their own record: a root
+            // operation against one must neither adopt nor disturb the other's.
+            // The collector is per-thread, so a record scoped to the thread
+            // rather than to the IDS would show up right here.
+            imas.core_profiles second = new imas.core_profiles();
+            second.setPulseCtx(idx);
+            second.ids_properties.homogeneous_time = 1;
+            second.ids_properties.comment = "TestOperationRecordLifecycle second";
+
+            second.put(1);
+            checkEmptyAndClean("after a put on a second IDS", second);
+            checkRecord("the first IDS's record must survive a root operation on a second IDS",
+                    ids, partialRead, Ids.PARTIAL_READ);
+
+            second.get(1);
+            checkEmptyAndClean("after a get on a second IDS", second);
+            checkRecord("the first IDS's record must survive a read of a second IDS",
                     ids, partialRead, Ids.PARTIAL_READ);
 
             imas.close(idx);
