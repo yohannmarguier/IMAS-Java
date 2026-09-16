@@ -26,88 +26,76 @@ import java.util.List;
  * an accumulating per-thread collector, so a tolerant site invoked with no
  * root operation in progress still has somewhere to record.
  */
-public final class RefusalCollector
-{
-   private static final ThreadLocal<RefusalCollector> FALLBACK = new ThreadLocal<RefusalCollector>()
-   {
-      @Override
-      protected RefusalCollector initialValue()
-      {
-         return new RefusalCollector();
-      }
-   };
+public final class RefusalCollector {
+  private static final ThreadLocal<RefusalCollector> FALLBACK = new ThreadLocal<RefusalCollector>() {
+    @Override
+    protected RefusalCollector initialValue() {
+      return new RefusalCollector();
+    }
+  };
 
-   private static final ThreadLocal<Deque<RefusalCollector>> STACK = new ThreadLocal<Deque<RefusalCollector>>()
-   {
-      @Override
-      protected Deque<RefusalCollector> initialValue()
-      {
-         return new ArrayDeque<RefusalCollector>();
-      }
-   };
+  private static final ThreadLocal<Deque<RefusalCollector>> STACK = new ThreadLocal<Deque<RefusalCollector>>() {
+    @Override
+    protected Deque<RefusalCollector> initialValue() {
+      return new ArrayDeque<RefusalCollector>();
+    }
+  };
 
-   private final List<SkippedPath> skippedPaths = new ArrayList<SkippedPath>();
+  private final List<SkippedPath> skippedPaths = new ArrayList<SkippedPath>();
 
-   private RefusalCollector()
-   {
-   }
+  private RefusalCollector() {
+  }
 
-   /**
-    * Opens a fresh collector for the duration of one root operation. Must
-    * be paired with a {@link #close()} in a {@code finally}.
-    *
-    * @return the newly opened collector
-    */
-   public static RefusalCollector open()
-   {
-      RefusalCollector collector = new RefusalCollector();
-      STACK.get().push(collector);
-      return collector;
-   }
+  /**
+   * Opens a fresh collector for the duration of one root operation. Must
+   * be paired with a {@link #close()} in a {@code finally}.
+   *
+   * @return the newly opened collector
+   */
+  public static RefusalCollector open() {
+    RefusalCollector collector = new RefusalCollector();
+    STACK.get().push(collector);
+    return collector;
+  }
 
-   /**
-    * Closes the collector most recently opened on the calling thread,
-    * folding its skipped paths into the collector it was nested in, if
-    * any.
-    */
-   public static void close()
-   {
-      Deque<RefusalCollector> stack = STACK.get();
-      RefusalCollector finished = stack.pop();
-      RefusalCollector parent = stack.peek();
-      if (parent != null)
-      {
-         parent.skippedPaths.addAll(finished.skippedPaths);
-      }
-   }
+  /**
+   * Closes the collector most recently opened on the calling thread,
+   * folding its skipped paths into the collector it was nested in, if
+   * any.
+   */
+  public static void close() {
+    Deque<RefusalCollector> stack = STACK.get();
+    RefusalCollector finished = stack.pop();
+    RefusalCollector parent = stack.peek();
+    if (parent != null) {
+      parent.skippedPaths.addAll(finished.skippedPaths);
+    }
+  }
 
-   /**
-    * @return the calling thread's currently open collector, or a
-    *         per-thread fallback when no root operation is in progress
-    */
-   public static RefusalCollector current()
-   {
-      Deque<RefusalCollector> stack = STACK.get();
-      RefusalCollector top = stack.peek();
-      return top != null ? top : FALLBACK.get();
-   }
+  /**
+   * @return the calling thread's currently open collector, or a
+   *         per-thread fallback when no root operation is in progress
+   */
+  public static RefusalCollector current() {
+    Deque<RefusalCollector> stack = STACK.get();
+    RefusalCollector top = stack.peek();
+    return top != null ? top : FALLBACK.get();
+  }
 
-   /**
-    * Records a skipped path absorbed by a tolerant site.
-    *
-    * @param skippedPath the skipped path to record
-    */
-   public void record(SkippedPath skippedPath)
-   {
-      skippedPaths.add(skippedPath);
-   }
+  /**
+   * Records a skipped path absorbed by a tolerant site.
+   *
+   * @param skippedPath the skipped path to record
+   */
+  public void record(SkippedPath skippedPath) {
+    skippedPaths.add(skippedPath);
+  }
 
-   /**
-    * @return the skipped paths recorded so far in this collector, in the
-    *         order they were recorded
-    */
-   public List<SkippedPath> getSkippedPaths()
-   {
-      return Collections.unmodifiableList(new ArrayList<SkippedPath>(skippedPaths));
-   }
+  /**
+   * @return the skipped paths recorded so far in this collector, in the
+   *         order they were recorded
+   */
+  public List<SkippedPath> getSkippedPaths() {
+    return Collections.unmodifiableList(new ArrayList<SkippedPath>(skippedPaths));
+  }
 }

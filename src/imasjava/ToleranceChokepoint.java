@@ -16,56 +16,39 @@ package imasjava;
  * line on standard output, spelled to match IMAS-Cpp's
  * {@code REFUSED READ:} / {@code REFUSED WRITE:} / {@code REFUSED DELETE:}.
  */
-public final class ToleranceChokepoint
-{
-   /** The refusal band's boundary closest to zero. */
-   public static final int REFUSAL_BAND_MAX = -1000;
+public final class ToleranceChokepoint {
+  /** The refusal band's boundary closest to zero. */
+  public static final int REFUSAL_BAND_MAX = -1000;
 
-   /** The refusal band's boundary furthest from zero. */
-   public static final int REFUSAL_BAND_MIN = -1099;
+  /** The refusal band's boundary furthest from zero. */
+  public static final int REFUSAL_BAND_MIN = -1099;
 
-   private ToleranceChokepoint()
-   {
-   }
+  private ToleranceChokepoint() {
+  }
 
-   /**
-    * Decides whether {@code failure} is a tolerated refusal for the field
-    * at {@code path}.
-    *
-    * <p>When tolerated, records a {@link SkippedPath} on the calling
-    * thread's {@link RefusalCollector} and prints the diagnostic line
-    * before returning.
-    *
-    * @param failure   the exception a tolerant site caught
-    * @param operation the root operation the traversal was performing
-    * @param path      the field path as the traversal knows it, relative
-    *                  to the enclosing context
-    * @return {@code true} when the caller may carry on past the refusal,
-    *         {@code false} when the caller must abort
-    */
-   public static boolean tolerate(ALException failure, SkippedPath.Operation operation, String path)
-   {
-      int code = failure.getCode();
-      if (code < REFUSAL_BAND_MIN || code > REFUSAL_BAND_MAX)
-      {
-         return false;
-      }
+  /**
+   * Decides whether {@code failure} is a tolerated refusal for the field
+   * at {@code path}.
+   *
+   * <p>When tolerated, records a {@link SkippedPath} on the calling
+   * thread's {@link RefusalCollector} and prints the diagnostic line
+   * before returning.
+   *
+   * @param failure   the exception a tolerant site caught
+   * @param operation the root operation the traversal was performing
+   * @param path      the field path as the traversal knows it, relative
+   *                  to the enclosing context
+   * @return {@code true} when the caller may carry on past the refusal,
+   *         {@code false} when the caller must abort
+   */
+  public static boolean tolerate(ALException failure, SkippedPath.Operation operation, String path) {
+    int code = failure.getCode();
+    if (code < REFUSAL_BAND_MIN || code > REFUSAL_BAND_MAX) {
+      return false;
+    }
 
-      RefusalCollector.current().record(new SkippedPath(operation, path, failure.getRawMessage(), code));
-      System.out.println(label(operation) + path);
-      return true;
-   }
-
-   private static String label(SkippedPath.Operation operation)
-   {
-      if (operation == SkippedPath.Operation.WRITE)
-      {
-         return "REFUSED WRITE: ";
-      }
-      if (operation == SkippedPath.Operation.DELETE)
-      {
-         return "REFUSED DELETE: ";
-      }
-      return "REFUSED READ: ";
-   }
+    RefusalCollector.current().record(new SkippedPath(operation, path, failure.getRawMessage(), code));
+    System.out.println(operation.getRefusalPrefix() + path);
+    return true;
+  }
 }

@@ -209,8 +209,9 @@ IDS API
 
     A root operation (:java:ref:`get`, :java:ref:`getSlice`,
     :java:ref:`put`, :java:ref:`putSlice` or ``delete``) still returns
-    ``void`` (or, for ``get`` and ``getSlice``, the loaded IDS) and still
-    throws :java:ref:`ALException` on failure. Against
+    ``void`` and still throws :java:ref:`ALException` on failure. The
+    static convenience wrappers keep returning the loaded IDS, whose
+    record is then queried exactly as below. Against
     a multiversion Data Dictionary shim, such an operation can also complete
     normally after quietly leaving one or more fields unset, because a field
     could not be converted between the stored and the requested Data
@@ -218,7 +219,9 @@ IDS API
     failure nor a fully clean result, and the three outcomes are told apart
     as follows:
 
-    - An :java:ref:`ALException` is thrown: the operation failed.
+    - An :java:ref:`ALException` is thrown: the operation failed. It leaves
+      an empty record and a :java:ref:`CLEAN` outcome behind, so a failure is
+      never also reported as a partial result.
     - The operation returns and :java:ref:`getSkippedPathCount` is ``0``: the
       operation completed cleanly.
     - The operation returns and :java:ref:`getSkippedPathCount` is greater
@@ -228,7 +231,7 @@ IDS API
 
     The record describes only the IDS's last root operation: it starts empty,
     does not accumulate across calls, and is replaced in full by the next root
-    operation. A :java:ref:`serialize`/:java:ref:`deserialize` pair runs a
+    operation, whether that one completes or fails. A :java:ref:`serialize`/:java:ref:`deserialize` pair runs a
     root operation internally against an in-memory pulse, and preserves the
     record of the root operation the caller actually asked for rather than
     that internal one.
@@ -296,7 +299,13 @@ SkippedPath
     .. java:type:: public enum Operation
 
         The kind of root operation being performed when a refusal was
-        absorbed: ``READ``, ``WRITE`` or ``DELETE``.
+        absorbed: ``READ``, ``WRITE`` or ``DELETE``. Each constant carries
+        the prefix of the line the refusal reports on standard output.
+
+        .. java:method:: public String getRefusalPrefix()
+
+            :return: the prefix of the one line a tolerated refusal reports
+                on standard output, spelled to match IMAS-Cpp
 
     .. java:method:: public Operation getOperation()
 
