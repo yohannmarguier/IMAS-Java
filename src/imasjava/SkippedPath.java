@@ -18,7 +18,25 @@ public final class SkippedPath
     */
    public enum Operation
    {
-      READ, WRITE, DELETE
+      READ("REFUSED READ: "),
+      WRITE("REFUSED WRITE: "),
+      DELETE("REFUSED DELETE: ");
+
+      private final String refusalPrefix;
+
+      Operation(String refusalPrefix)
+      {
+         this.refusalPrefix = refusalPrefix;
+      }
+
+      /**
+       * @return the prefix of the one line a tolerated refusal reports on
+       *         standard output, spelled to match IMAS-Cpp
+       */
+      public String getRefusalPrefix()
+      {
+         return refusalPrefix;
+      }
    }
 
    private final Operation operation;

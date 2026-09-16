@@ -52,20 +52,7 @@ public final class ToleranceChokepoint
       }
 
       RefusalCollector.current().record(new SkippedPath(operation, path, failure.getRawMessage(), code));
-      System.out.println(label(operation) + path);
+      System.out.println(operation.getRefusalPrefix() + path);
       return true;
-   }
-
-   private static String label(SkippedPath.Operation operation)
-   {
-      if (operation == SkippedPath.Operation.WRITE)
-      {
-         return "REFUSED WRITE: ";
-      }
-      if (operation == SkippedPath.Operation.DELETE)
-      {
-         return "REFUSED DELETE: ";
-      }
-      return "REFUSED READ: ";
    }
 }

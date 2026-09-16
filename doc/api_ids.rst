@@ -299,7 +299,13 @@ SkippedPath
     .. java:type:: public enum Operation
 
         The kind of root operation being performed when a refusal was
-        absorbed: ``READ``, ``WRITE`` or ``DELETE``.
+        absorbed: ``READ``, ``WRITE`` or ``DELETE``. Each constant carries
+        the prefix of the line the refusal reports on standard output.
+
+        .. java:method:: public String getRefusalPrefix()
+
+            :return: the prefix of the one line a tolerated refusal reports
+                on standard output, spelled to match IMAS-Cpp
 
     .. java:method:: public Operation getOperation()
 
