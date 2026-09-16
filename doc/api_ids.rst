@@ -209,8 +209,9 @@ IDS API
 
     A root operation (:java:ref:`get`, :java:ref:`getSlice`,
     :java:ref:`put`, :java:ref:`putSlice` or ``delete``) still returns
-    ``void`` (or, for ``get`` and ``getSlice``, the loaded IDS) and still
-    throws :java:ref:`ALException` on failure. Against
+    ``void`` and still throws :java:ref:`ALException` on failure. The
+    static convenience wrappers keep returning the loaded IDS, whose
+    record is then queried exactly as below. Against
     a multiversion Data Dictionary shim, such an operation can also complete
     normally after quietly leaving one or more fields unset, because a field
     could not be converted between the stored and the requested Data
