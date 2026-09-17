@@ -50,9 +50,19 @@ class TestLeafReadTolerance {
             imas.core_profiles sliced = new imas.core_profiles();
             sliced.setPulseCtx(idx);
             sliced.getSlice(0, time[1], LowLevel.CLOSEST_INTERP);
+            // Split from the leaf check below so a failure says whether the
+            // slice came back unpopulated or came back with the wrong value.
+            boolean slicePopulated = sliced.profiles_1d != null
+                    && sliced.profiles_1d.length > 0
+                    && sliced.profiles_1d[0].ion != null
+                    && sliced.profiles_1d[0].ion.length > 0;
+            check("getSlice: the requested slice's profiles_1d/ion is populated",
+                    slicePopulated);
+            // getSlice asks for time[1], and CLOSEST_INTERP returns the slice
+            // written at that time -- the one filled with i == 1. Its leaf
+            // carries 10.0 + 1, not the first slice's 10.0.
             check("getSlice: profiles_1d ion leaf survives the wrapped read",
-                    sliced.profiles_1d != null && sliced.profiles_1d.length > 0
-                            && sliced.profiles_1d[0].ion[0].z_ion == 10.0);
+                    slicePopulated && sliced.profiles_1d[0].ion[0].z_ion == 11.0);
             check("getSlice: operation record stays clean on the untaken catch branch",
                     !sliced.isPartial() && sliced.getSkippedPathCount() == 0);
 
