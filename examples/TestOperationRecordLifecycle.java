@@ -33,6 +33,11 @@ class TestOperationRecordLifecycle {
             ids.setPulseCtx(idx);
             ids.ids_properties.homogeneous_time = 1;
             ids.ids_properties.comment = "TestOperationRecordLifecycle";
+            // validate() runs at the top of put(), before the first LowLevel
+            // call: under HOMOGENEOUS it requires a non-empty time array, and
+            // without one the put throws before any record could be made.
+            // One point is enough -- this test is about the record, not data.
+            ids.time = new Vect1DDouble(new double[] {0.0});
 
             ids.put(0);
             checkEmptyAndClean("after an ordinary put", ids);
@@ -72,6 +77,7 @@ class TestOperationRecordLifecycle {
             second.setPulseCtx(idx);
             second.ids_properties.homogeneous_time = 1;
             second.ids_properties.comment = "TestOperationRecordLifecycle second";
+            second.time = new Vect1DDouble(new double[] {0.0});
 
             second.put(1);
             checkEmptyAndClean("after a put on a second IDS", second);
