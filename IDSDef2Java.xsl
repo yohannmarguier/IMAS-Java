@@ -739,7 +739,7 @@ public class imas {
         import imasjava.wrapper.*;
         import imasjava.*;
         
-        public class <xsl:value-of select="@name"/>_IDSBase
+        public class <xsl:value-of select="@name"/>_IDSBase extends Ids
         {
         
         private static final int maxOccurences = <xsl:value-of select="@maxoccur"/>;
@@ -934,7 +934,9 @@ public class imas {
                 // store state and overwrite so we use the ASCII backend in this->put
                 int _pulseCtx_stored = this.pulseCtx;
                 this.pulseCtx = _pulseCtx;
-                this.put();
+                <xsl:call-template name="NESTED_ROOT_OPERATION">
+                  <xsl:with-param name="call">this.put();</xsl:with-param>
+                </xsl:call-template>
                 // restore state
                 this.pulseCtx = _pulseCtx_stored;
 
@@ -984,7 +986,9 @@ public class imas {
                 // store state and overwrite so we use the Serialize backend in this->put
                 int _pulseCtx_stored = this.pulseCtx;
                 this.pulseCtx = _pulseCtx;
-                this.put();
+                <xsl:call-template name="NESTED_ROOT_OPERATION">
+                  <xsl:with-param name="call">this.put();</xsl:with-param>
+                </xsl:call-template>
                 // restore state
                 this.pulseCtx = _pulseCtx_stored;
 
@@ -1066,7 +1070,9 @@ public class imas {
                 // store state and overwrite so we use the ASCII backend in this->put
                 int _pulseCtx_stored = this.pulseCtx;
                 this.pulseCtx = _pulseCtx;
-                this.get(0);
+                <xsl:call-template name="NESTED_ROOT_OPERATION">
+                  <xsl:with-param name="call">this.get(0);</xsl:with-param>
+                </xsl:call-template>
                 // restore state
                 this.pulseCtx = _pulseCtx_stored;
 
@@ -1097,7 +1103,9 @@ public class imas {
                 // store state and overwrite so we use the Serialize backend in this->get
                 int _pulseCtx_stored = this.pulseCtx;
                 this.pulseCtx = _pulseCtx;
-                this.get(0);
+                <xsl:call-template name="NESTED_ROOT_OPERATION">
+                  <xsl:with-param name="call">this.get(0);</xsl:with-param>
+                </xsl:call-template>
                 // restore state
                 this.pulseCtx = _pulseCtx_stored;
 
@@ -1117,23 +1125,34 @@ public class imas {
         this.put(0);
     }
 
+    /**
+    * A refused leaf write is tolerated: the field is left unwritten and the
+    * traversal carries on, reporting a partial put on {@link #getOutcome()}
+    * instead of throwing. There is no rollback of fields already written
+    * before the refusal — an accepted limitation, not a defect.
+    * @param iOccurrence the occurrence to write
+    * @exception ALException Issued when a non-tolerated failure aborts the operation.
+    */
     public void put(int iOccurrence)  throws ALException
     {
+        beginRootOperation();
+        boolean _rootOperationCompleted = false;
+        try{
         int pulseCtx = this.pulseCtx;
         int ctx = -1;
         String idsFullName = <xsl:value-of select="@name"/>_IDSBase.IDS_NAME;
 
         String disableValidation;
-            
+
         disableValidation = System.getenv("IMAS_AL_DISABLE_VALIDATE");
 
         if (disableValidation == null || !disableValidation.equals("1")) validate();
- 
+
         int idsTimeMode = this.ids_properties.homogeneous_time;
 
         if(iOccurrence > 0)
             idsFullName = idsFullName + "/" + iOccurrence;
-            
+
             if(idsTimeMode == LowLevel.IDS_TIME_MODE_UNKNOWN)
             {
             System.err.println("Warning: IDS <xsl:value-of select="@name"/> is found to be EMPTY (homogeneous_time undefined). PUT quits with no action.");
@@ -1145,21 +1164,26 @@ public class imas {
               System.out.println("AL warning: ids_properties/homogeneous_time has been set to 2 for the constant IDS <xsl:value-of select="@name"/>, please check the program which has filled this IDS since this is the mandatory value for a constant IDS");
               this.ids_properties.homogeneous_time = 2;
             }
-            </xsl:if>       
-            
+            </xsl:if>
+
 
             delete(iOccurrence);
-            
+
             try{
             // Open put context
             ctx = LowLevel.al_begin_global_action(pulseCtx, idsFullName, LowLevel.WRITE_OP);
-            
+
             this.putRootFields(ctx, idsTimeMode, idsFullName);
             LowLevel.al_write_plugins_metadata(ctx);
             }
             finally {
             if(ctx >= 0)
             LowLevel.al_end_action(ctx);
+            }
+            _rootOperationCompleted = true;
+            }
+            finally {
+            endRootOperation(Ids.PARTIAL_PUT, _rootOperationCompleted);
             }
             }
             
@@ -1214,8 +1238,21 @@ public class imas {
               </xsl:otherwise>
             </xsl:choose>
             }
+            /**
+            * A refused leaf write is tolerated the same way as in {@link #put(int)}:
+            * the field is left unwritten, the traversal carries on, and a partial
+            * put is reported instead of an exception. There is no rollback — a
+            * refusal partway through a slice leaves what was already written on
+            * disk, and the container one element longer. An accepted limitation,
+            * not a defect.
+            * @param iOccurrence the occurrence to write
+            * @exception ALException Issued when a non-tolerated failure aborts the operation.
+            */
             public void putSlice(int iOccurrence) throws ALException
             {
+            beginRootOperation();
+            boolean _rootOperationCompleted = false;
+            try{
             <xsl:if test="@type='constant'">
             if(this.ids_properties.homogeneous_time != 2)
             {
@@ -1286,8 +1323,13 @@ public class imas {
             }
               </xsl:otherwise>
             </xsl:choose>
+            _rootOperationCompleted = true;
             }
-            
+            finally {
+            endRootOperation(Ids.PARTIAL_PUT, _rootOperationCompleted);
+            }
+            }
+
 
             public void putSliceRootFields(int ctx, int idsTimeMode, String idsFullName) throws ALException
             {
@@ -1400,19 +1442,22 @@ public class imas {
             
             public void get(int iOccurrence)  throws ALException
             {
+            beginRootOperation();
+            boolean _rootOperationCompleted = false;
+            try{
             String strNodePath = "";
             int pulseCtx = this.pulseCtx;
             int ctx = -1;
             String idsFullName = <xsl:value-of select="@name"/>_IDSBase.IDS_NAME;
-            
-            
+
+
             int idsTimeMode = LowLevel.IDS_TIME_MODE_UNKNOWN;
-            
+
             if(iOccurrence > 0)
             idsFullName = idsFullName + "/" + iOccurrence;
-            
+
             idsTimeMode = imas.readIdsTimeMode(pulseCtx, idsFullName);
-            
+
             this.reset();
             try{
             // Open get context
@@ -1424,6 +1469,11 @@ public class imas {
             finally {
             if(ctx >= 0)
             LowLevel.al_end_action(ctx);
+            }
+            _rootOperationCompleted = true;
+            }
+            finally {
+            endRootOperation(Ids.PARTIAL_READ, _rootOperationCompleted);
             }
             }
             public void getRootFields(int ctx, int idsTimeMode)  throws ALException
@@ -1485,6 +1535,9 @@ public class imas {
             }
             public void getSlice(int iOccurrence, double time, int interpolMode) throws ALException
             {
+            beginRootOperation();
+            boolean _rootOperationCompleted = false;
+            try{
             <xsl:choose>
                 <xsl:when test="@type='constant'">
                 // for static IDSes only GET method is called
@@ -1494,14 +1547,14 @@ public class imas {
             int pulseCtx = this.pulseCtx;
             int ctx = -1;
             String idsFullName = <xsl:value-of select="@name"/>_IDSBase.IDS_NAME;
-            
+
             int idsTimeMode = LowLevel.IDS_TIME_MODE_UNKNOWN;
-            
+
             if(iOccurrence > 0)
             idsFullName = idsFullName + "/" + iOccurrence;
-            
+
             idsTimeMode = imas.readIdsTimeMode(pulseCtx, idsFullName);
-            
+
             this.reset();
             try{
             // Open putSlice context
@@ -1516,6 +1569,11 @@ public class imas {
             }
               </xsl:otherwise>
             </xsl:choose>
+            _rootOperationCompleted = true;
+            }
+            finally {
+            endRootOperation(Ids.PARTIAL_READ, _rootOperationCompleted);
+            }
             }
             
             
@@ -1558,22 +1616,30 @@ public class imas {
             }
             
             public void delete(int iOccurrence) throws ALException
-            {  
+            {
+            beginRootOperation();
+            boolean _rootOperationCompleted = false;
+            try{
             String idsFullName = <xsl:value-of select="@name"/>_IDSBase.IDS_NAME;
             int ctx = -1;
-            
+
             if(iOccurrence > 0)
             idsFullName = idsFullName + "/" + iOccurrence;
-            
+
             try{
             // Open put context
             ctx = LowLevel.al_begin_global_action(pulseCtx, idsFullName, LowLevel.WRITE_OP);
-            
+
             this.deleteRootFields(ctx);
             }
             finally {
             if(ctx >= 0)
             LowLevel.al_end_action(ctx);
+            }
+            _rootOperationCompleted = true;
+            }
+            finally {
+            endRootOperation(Ids.PARTIAL_PUT, _rootOperationCompleted);
             }
             }
             
@@ -2035,7 +2101,13 @@ public class imas {
         </xsl:when>
         <xsl:otherwise>
           strNodePath = "<xsl:value-of select="@path"/>";
+          try{
           LowLevel.al_delete_data(ctx, strNodePath);
+          } catch (ALException _leafRefusal) {
+          if (!ToleranceChokepoint.tolerate(_leafRefusal, SkippedPath.Operation.DELETE, strNodePath)) {
+          throw _leafRefusal;
+          }
+          }
         </xsl:otherwise>
       </xsl:choose>
     </xsl:template>
@@ -2356,6 +2428,56 @@ public class imas {
     
     
     <!--=================================================================-->
+    <!--=================================================================-->
+    <!--  Runs a root operation nested inside another one, preserving the  -->
+    <!--  IDS's operation record and partial outcome across it. The inner  -->
+    <!--  operation replaces the record the caller was told about, so it   -->
+    <!--  is saved before and restored in a finally: an inner operation    -->
+    <!--  that throws must not erase it either.                           -->
+    <!--=================================================================-->
+
+    <!--=================================================================-->
+    <!--  Opens an array-of-structures context at a tolerant site.         -->
+    <!--                                                                   -->
+    <!--  A refused open means the shim will not serve this container at   -->
+    <!--  all, so the whole container is skipped and the traversal carries -->
+    <!--  on past it. aosCtx is reset first so a refusal cannot leave the  -->
+    <!--  previous container's id in scope, and the caller guards the body -->
+    <!--  with "if (aosCtx >= 0)".                                         -->
+    <!--                                                                   -->
+    <!--  The two operations part company in what the caller does next,    -->
+    <!--  not here. A refused read leaves the field null, because nothing  -->
+    <!--  was fetched into it. A refused write deliberately leaves the     -->
+    <!--  caller's in-memory array untouched: the data is still theirs,    -->
+    <!--  only storing it was refused, so there is no else branch on the   -->
+    <!--  write side.                                                      -->
+    <!--=================================================================-->
+
+    <xsl:template name="TOLERANT_AOS_OPEN">
+      <!-- READ or WRITE, the root operation the traversal is performing -->
+      <xsl:param name="operation"/>
+      aosCtx = -1;
+      try {
+      aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
+      } catch (ALException _aosOpenRefusal) {
+      if (!ToleranceChokepoint.tolerate(_aosOpenRefusal, SkippedPath.Operation.<xsl:value-of select="$operation"/>, strNodePath)) {
+      throw _aosOpenRefusal;
+      }
+      }
+    </xsl:template>
+
+    <xsl:template name="NESTED_ROOT_OPERATION">
+      <!-- the inner root operation call, e.g. "this.put();" -->
+      <xsl:param name="call"/>
+      List&lt;SkippedPath&gt; _savedSkippedPaths = this.getSkippedPaths();
+      int _savedOutcome = this.getOutcome();
+      try {
+      <xsl:value-of select="$call"/>
+      } finally {
+      this.restoreOperationRecord(_savedSkippedPaths, _savedOutcome);
+      }
+    </xsl:template>
+
     <!-- function to generate the full subclass name from the field path -->
     <!--           (adds the "Class" keyword for each subclass)          -->
     <!--=================================================================-->
@@ -2425,8 +2547,11 @@ public class imas {
             try{
             arraySize = this.<xsl:value-of select = "@name"/>.length;
             int tmpArray[] = { arraySize };
-            aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
+            <xsl:call-template name="TOLERANT_AOS_OPEN">
+              <xsl:with-param name="operation">WRITE</xsl:with-param>
+            </xsl:call-template>
 
+            if (aosCtx >= 0) {
             if (this.<xsl:value-of select = "@name"/>.length == 0 &amp;&amp; tmpArray[0]&gt;0) {
               arraySize = tmpArray[0];
               this.<xsl:value-of select="@name"/> = new <xsl:value-of select = "@name"/>Class[arraySize];
@@ -2436,6 +2561,7 @@ public class imas {
             {
             this.<xsl:value-of select="@name"/>[i].<xsl:value-of select="$methodName"/>(aosCtx, idsTimeMode, idsFullName);
             LowLevel.al_iterate_over_arraystruct(aosCtx, 1); 
+            }
             }
             }
             
@@ -2462,8 +2588,11 @@ public class imas {
             try{
             arraySize = this.<xsl:value-of select = "@name"/>.length;
             int tmpArray[] = { arraySize };
-            aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
+            <xsl:call-template name="TOLERANT_AOS_OPEN">
+              <xsl:with-param name="operation">WRITE</xsl:with-param>
+            </xsl:call-template>
 
+            if (aosCtx >= 0) {
             if (this.<xsl:value-of select = "@name"/>.length == 0 &amp;&amp; tmpArray[0]&gt;0) {
               arraySize = tmpArray[0];
               this.<xsl:value-of select="@name"/> = new <xsl:value-of select = "@name"/>Class[arraySize];
@@ -2473,6 +2602,7 @@ public class imas {
             {
             this.<xsl:value-of select="@name"/>[i].<xsl:value-of select="$methodName"/>(aosCtx, idsTimeMode, idsFullName);
             LowLevel.al_iterate_over_arraystruct(aosCtx, 1); 
+            }
             }
             }
             
@@ -2507,8 +2637,11 @@ public class imas {
             try{
             arraySize = this.<xsl:value-of select = "@name"/>.length;
             int tmpArray[] = { arraySize };
-            aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
+            <xsl:call-template name="TOLERANT_AOS_OPEN">
+              <xsl:with-param name="operation">WRITE</xsl:with-param>
+            </xsl:call-template>
 
+            if (aosCtx >= 0) {
             if (this.<xsl:value-of select = "@name"/>.length == 0 &amp;&amp; tmpArray[0]&gt;0) {
               arraySize = tmpArray[0];
               this.<xsl:value-of select="@name"/> = new <xsl:value-of select = "@name"/>Class[arraySize];
@@ -2518,6 +2651,7 @@ public class imas {
             {
             this.<xsl:value-of select="@name"/>[i].<xsl:value-of select="$methodName"/>(aosCtx, idsTimeMode, idsFullName);
             LowLevel.al_iterate_over_arraystruct(aosCtx, 1); 
+            }
             }
             }
             
@@ -2563,6 +2697,7 @@ public class imas {
                 strTimeBasePath = "";
               </xsl:otherwise>
             </xsl:choose>
+            try{
             <xsl:choose>
               <xsl:when test="@path='ids_properties/version_put/data_dictionary'">
                 Wrapper.writeData(ctx, idsFullName, strNodePath, strTimeBasePath, "<xsl:value-of select="$DD_VERSION"/>", "<xsl:value-of select="@lifecycle_status"/>");
@@ -2577,7 +2712,12 @@ public class imas {
                 Wrapper.writeData(ctx, idsFullName, strNodePath, strTimeBasePath, this.<xsl:value-of select="@name"/>, "<xsl:value-of select="@lifecycle_status"/>");
               </xsl:otherwise>
             </xsl:choose>
-            
+            } catch (ALException _leafRefusal) {
+            if (!ToleranceChokepoint.tolerate(_leafRefusal, SkippedPath.Operation.WRITE, strNodePath)) {
+            throw _leafRefusal;
+            }
+            }
+
             <xsl:if test="@type='dynamic' and not(ancestor::field[@type='dynamic' and @data_type='struct_array'])">
               }
             </xsl:if>
@@ -2621,7 +2761,10 @@ public class imas {
           strTimeBasePath = "";
           try{       
           int tmpArray[] = new int[1];
-          aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
+          <xsl:call-template name="TOLERANT_AOS_OPEN">
+            <xsl:with-param name="operation">READ</xsl:with-param>
+          </xsl:call-template>
+          if (aosCtx >= 0) {
           arraySize = tmpArray[0];
           if(arraySize &lt;= 0)
           {
@@ -2638,6 +2781,11 @@ public class imas {
           this.<xsl:value-of select="@name"/>[i].get(aosCtx, idsTimeMode);
           LowLevel.al_iterate_over_arraystruct(aosCtx, 1); 
           }
+          }
+          }
+          else
+          {
+          this.<xsl:value-of select="@name"/> = null;
           }
           }     
           finally { 
@@ -2660,7 +2808,10 @@ public class imas {
           strTimeBasePath = "";
           try{       
           int tmpArray[] = new int[1];
-          aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
+          <xsl:call-template name="TOLERANT_AOS_OPEN">
+            <xsl:with-param name="operation">READ</xsl:with-param>
+          </xsl:call-template>
+          if (aosCtx >= 0) {
           arraySize = tmpArray[0];
           if(arraySize &lt;= 0)
           {
@@ -2677,6 +2828,11 @@ public class imas {
           this.<xsl:value-of select="@name"/>[i].get(aosCtx, idsTimeMode);
           LowLevel.al_iterate_over_arraystruct(aosCtx, 1); 
           }
+          }
+          }
+          else
+          {
+          this.<xsl:value-of select="@name"/> = null;
           }
           }     
           finally { 
@@ -2706,7 +2862,10 @@ public class imas {
           </xsl:choose>
           try{       
           int tmpArray[] = new int[1];
-          aosCtx = LowLevel.al_begin_arraystruct_action(ctx, strNodePath, strTimeBasePath, tmpArray);
+          <xsl:call-template name="TOLERANT_AOS_OPEN">
+            <xsl:with-param name="operation">READ</xsl:with-param>
+          </xsl:call-template>
+          if (aosCtx >= 0) {
           arraySize = tmpArray[0];
           if(arraySize &lt;= 0)
           {
@@ -2723,6 +2882,11 @@ public class imas {
           this.<xsl:value-of select="@name"/>[i].get(aosCtx, idsTimeMode);
           LowLevel.al_iterate_over_arraystruct(aosCtx, 1); 
           }
+          }
+          }
+          else
+          {
+          this.<xsl:value-of select="@name"/> = null;
           }
           }     
           finally { 
@@ -2767,7 +2931,14 @@ public class imas {
               strTimeBasePath = "";
             </xsl:otherwise>
           </xsl:choose>
+          try{
           this.<xsl:value-of select="@name"/> = Wrapper.readData(ctx, strNodePath, strTimeBasePath, this.<xsl:value-of select="@name"/>);
+          }
+          catch (ALException _leafRefusal) {
+          if (!ToleranceChokepoint.tolerate(_leafRefusal, SkippedPath.Operation.READ, strNodePath)) {
+          throw _leafRefusal;
+          }
+          }
           <xsl:if test="@type='dynamic' and not(ancestor::field[@type='dynamic' and @data_type='struct_array'])">
             }
           </xsl:if>

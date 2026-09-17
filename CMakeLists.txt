@@ -119,9 +119,13 @@ list( APPEND SOURCES
     src/imasjava/ALLowLevel.java
     src/imasjava/Complex.java
     src/imasjava/CoordinateValidation.java
+    src/imasjava/Ids.java
     src/imasjava/LimitedSizeStringBuilder.java
+    src/imasjava/RefusalCollector.java
+    src/imasjava/SkippedPath.java
     src/imasjava/StringLimitException.java
     src/imasjava/SummaryString.java
+    src/imasjava/ToleranceChokepoint.java
     src/imasjava/ValidationException.java
     src/imasjava/Vect1DBoolean.java
     src/imasjava/Vect1DComplex.java

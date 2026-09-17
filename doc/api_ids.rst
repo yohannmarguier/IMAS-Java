@@ -202,3 +202,154 @@ IDS API
         Validate the IDS coordinate consistency. The method should always be tested for exception/errors while it is being executed. A ValidationException can be raised if a coordinate inconsistency is found. Nothing occurs if the data are valids.
 
         :example: .. literalinclude:: code_samples/ids_validate
+
+
+    Partial operations
+    -------------------
+
+    A root operation (:java:ref:`get`, :java:ref:`getSlice`,
+    :java:ref:`put`, :java:ref:`putSlice` or ``delete``) still returns
+    ``void`` and still throws :java:ref:`ALException` on failure. The
+    static convenience wrappers keep returning the loaded IDS, whose
+    record is then queried exactly as below. Against
+    a multiversion Data Dictionary shim, such an operation can also complete
+    normally after quietly leaving one or more fields unset, because a field
+    could not be converted between the stored and the requested Data
+    Dictionary versions. This is a **partial** operation: it is neither a
+    failure nor a fully clean result, and the three outcomes are told apart
+    as follows:
+
+    - An :java:ref:`ALException` is thrown: the operation failed. It leaves
+      an empty record and a :java:ref:`CLEAN` outcome behind, so a failure is
+      never also reported as a partial result.
+    - The operation returns and :java:ref:`getSkippedPathCount` is ``0``: the
+      operation completed cleanly.
+    - The operation returns and :java:ref:`getSkippedPathCount` is greater
+      than ``0``: the operation completed but is partial. :java:ref:`getOutcome`
+      reports :java:ref:`PARTIAL_READ` or :java:ref:`PARTIAL_PUT`, and
+      :java:ref:`getSkippedPaths` names every field that was left unset.
+
+    The record describes only the IDS's last root operation: it starts empty,
+    does not accumulate across calls, and is replaced in full by the next root
+    operation, whether that one completes or fails. A :java:ref:`serialize`/:java:ref:`deserialize` pair runs a
+    root operation internally against an in-memory pulse, and preserves the
+    record of the root operation the caller actually asked for rather than
+    that internal one.
+
+    Without a multiversion Data Dictionary shim linked, no field can be
+    refused, so every operation is either an exception or clean.
+
+    .. caution::
+
+        A refused write or delete is not rolled back. The generated write
+        traversal has no rollback: a refusal partway through a ``put`` or
+        ``putSlice`` leaves on disk whatever had already been written before
+        the refusal, and a refused delete leaves its target in place. This is
+        an accepted limitation of the multiversion shim, not an oversight.
+
+    .. java:field:: public static final int CLEAN = 0
+
+        Outcome of a root operation that completed with nothing skipped.
+
+    .. java:field:: public static final int PARTIAL_READ = 1
+
+        Outcome of a :java:ref:`get` or :java:ref:`getSlice` that skipped at
+        least one path.
+
+    .. java:field:: public static final int PARTIAL_PUT = 2
+
+        Outcome of a :java:ref:`put`, :java:ref:`putSlice` or ``delete`` that
+        skipped at least one path.
+
+    .. java:method:: public final java.util.List<SkippedPath> getSkippedPaths()
+
+        :return: the paths skipped by this IDS's last root operation, in the
+            order they were skipped; empty if that operation completed
+            cleanly
+
+    .. java:method:: public final int getSkippedPathCount()
+
+        :return: the number of paths skipped by this IDS's last root
+            operation; always equal to ``getSkippedPaths().size()``
+
+    .. java:method:: public final int getOutcome()
+
+        :return: :java:ref:`CLEAN`, :java:ref:`PARTIAL_READ` or
+            :java:ref:`PARTIAL_PUT`, describing this IDS's last root
+            operation
+
+    .. java:method:: public final boolean isPartial()
+
+        :return: ``true`` if this IDS's last root operation skipped at least
+            one path
+
+
+SkippedPath
+-----------
+
+.. java:package:: imasjava
+
+.. java:type:: public final class SkippedPath
+
+    One field a tolerant site left unset because the multiversion Data
+    Dictionary shim refused it. Recorded with the kind of root operation
+    that was running, the field path as the traversal knows it, the
+    refusal message, and the status code.
+
+    .. java:type:: public enum Operation
+
+        The kind of root operation being performed when a refusal was
+        absorbed: ``READ``, ``WRITE`` or ``DELETE``. Each constant carries
+        the prefix of the line the refusal reports on standard output.
+
+        .. java:method:: public String getRefusalPrefix()
+
+            :return: the prefix of the one line a tolerated refusal reports
+                on standard output, spelled to match IMAS-Cpp
+
+    .. java:method:: public Operation getOperation()
+
+        :return: the kind of root operation being performed
+
+    .. java:method:: public String getPath()
+
+        :return: the field path as the traversal knows it, relative to the
+            enclosing context, not the full Data Dictionary path
+
+    .. java:method:: public String getMessage()
+
+        :return: the refusal message reported by the shim; the full Data
+            Dictionary path is available inside this message
+
+    .. java:method:: public int getCode()
+
+        :return: the status code, inside the refusal band
+
+
+ALException
+-----------
+
+.. java:type:: public class ALException extends Exception
+
+    Signals a failure reported through the Java High-Level Interface. When
+    the failure originates in the Access Layer C ABI, the exception carries
+    the status code and the underlying message exactly as the Access Layer
+    reported them, unformatted.
+
+    .. java:method:: public int getCode()
+
+        :return: the Access Layer status code carried by this exception, or
+            ``0`` if the exception was not raised from the C ABI (several
+            are raised from Java itself). Such an exception is never eligible
+            for tolerance.
+
+    .. java:method:: public String getRawMessage()
+
+        :return: the underlying message, unformatted. When :java:ref:`getCode`
+            is ``0``, this is the same text as ``getMessage()``.
+
+    .. note::
+
+        ``getMessage()`` keeps returning the formatted text it has always
+        returned, so existing code that catches :java:ref:`ALException` and
+        reads ``getMessage()`` is unaffected by the carried status.
