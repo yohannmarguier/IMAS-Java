@@ -31,13 +31,19 @@ class TestOperationRecordLifecycle {
 
             imas.core_profiles ids = new imas.core_profiles();
             ids.setPulseCtx(idx);
-            ids.ids_properties.homogeneous_time = 1;
-            ids.ids_properties.comment = "TestOperationRecordLifecycle";
+            // Time-independent, because this test stores no data at all: it
+            // is about the operation record, not about an IDS's contents.
             // validate() runs at the top of put(), before the first LowLevel
-            // call: under HOMOGENEOUS it requires a non-empty time array, and
-            // without one the put throws before any record could be made.
-            // One point is enough -- this test is about the record, not data.
-            ids.time = new Vect1DDouble(new double[] {0.0});
+            // call, and under HOMOGENEOUS it demands both a non-empty time
+            // array and that every dynamic leaf whose coordinate is time
+            // matches its length -- which an IDS holding nothing cannot do.
+            // serialize() is where that bites: it opens an ASCII pulse and
+            // calls put() again, by which point get() has allocated leaves
+            // like global_quantities/ip as empty. Under INDEPENDENT the same
+            // check instead requires those leaves to be empty, which is
+            // exactly what they are here.
+            ids.ids_properties.homogeneous_time = 2;
+            ids.ids_properties.comment = "TestOperationRecordLifecycle";
 
             ids.put(0);
             checkEmptyAndClean("after an ordinary put", ids);
@@ -75,9 +81,8 @@ class TestOperationRecordLifecycle {
             // rather than to the IDS would show up right here.
             imas.core_profiles second = new imas.core_profiles();
             second.setPulseCtx(idx);
-            second.ids_properties.homogeneous_time = 1;
+            second.ids_properties.homogeneous_time = 2;
             second.ids_properties.comment = "TestOperationRecordLifecycle second";
-            second.time = new Vect1DDouble(new double[] {0.0});
 
             second.put(1);
             checkEmptyAndClean("after a put on a second IDS", second);
